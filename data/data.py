@@ -53,17 +53,6 @@ class eegData(Dataset):
         label_data = np.concatenate(stack_label_data)
 
 
-        # begin shuffling to get validation and training data
-        trials = eeg_data.shape[0]
-        valid_size = int(trials * validation_size)
-        shuffled_indices = np.arange(trials)
-        np.random.shuffle(shuffled_indices)
-        validation_data = eeg_data[shuffled_indices[:valid_size]]
-        validation_labels = label_data[shuffled_indices[:valid_size]]
-        eeg_data = eeg_data[shuffled_indices[valid_size:]]
-        label_data = label_data[shuffled_indices[valid_size:]]
-
-
         # begin applying moving_average
         eeg_data = np.apply_along_axis(func1d=moving_average, axis=2, arr=eeg_data, w=mov_avg_window)
 

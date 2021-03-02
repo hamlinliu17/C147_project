@@ -1,5 +1,5 @@
-from torch.utils.data import Dataset
 import torch
+from torch.utils.data import Dataset
 import numpy as np
 
 def moving_average(x, w):
@@ -20,7 +20,7 @@ class eegData(Dataset):
     provides simple functionality
 
     """
-    def __init__(self, data_file_name, label_file_name, validation_size=0.1, preprocessing_params={}):
+    def __init__(self, data_file_name, label_file_name, preprocessing_params={}):
         """
         :input data_file_name: file path of the data
         :input label_file_name: file path of the labels
@@ -73,9 +73,6 @@ class eegData(Dataset):
         self.mov_avg_window = mov_avg_window 
         self.trim = trimming 
         self.sampling = subsample
-
-        self.validation_data = validation_data
-        self.validation_labels = validation_labels
 
     def __len__(self):
         assert self.eeg_data.shape[0] == self.label_data.shape[0]

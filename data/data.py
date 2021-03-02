@@ -19,10 +19,11 @@ class eegData(Dataset):
     provides simple functionality
 
     """
-    def __init__(self, data_file_name, label_file_name, preprocessing_params={}):
+    def __init__(self, data_file_name, label_file_name, validation_size=0.1, preprocessing_params={}):
         """
         :input data_file_name: file path of the data
         :input label_file_name: file path of the labels
+        :input validation_size: size of validation (percentage given to validation)
         :input preprocessing_params:
             'subsample': int on the size of step of the subsampling
             'mov_avg': int on the size of the moving average window
@@ -33,6 +34,7 @@ class eegData(Dataset):
         trimming = preprocessing_params.get('trim', 0) # how much you want to trim
         eeg_data = np.load(data_file_name)
         label_data = np.load(label_file_name) - 769
+        
 
         # remove the last x amount of time steps
         trimmed_indices = eeg_data.shape[2] - trimming 
@@ -50,6 +52,17 @@ class eegData(Dataset):
         label_data = np.concatenate(stack_label_data)
 
 
+        # begin shuffling to get validation and training data
+        trials = eeg_data.shape[0]
+        valid_size = int(trials * validation_size)
+        shuffled_indices = np.arange(trials)
+        np.random.shuffle(shuffled_indices)
+        validation_data = eeg_data[shuffled_indices[:valid_size]]
+        validation_labels = label_data[shuffled_indices[:valid_size]]
+        eeg_data = eeg_data[shuffled_indices[valid_size:]]
+        label_data = label_data[shuffled_indices[valid_size:]]
+
+
         # begin applying moving_average
         eeg_data = np.apply_along_axis(func1d=moving_average, axis=2, arr=eeg_data, w=mov_avg_window)
 
@@ -59,6 +72,9 @@ class eegData(Dataset):
         self.mov_avg_window = mov_avg_window 
         self.trim = trimming 
         self.sampling = subsample
+
+        self.validation_data = validation_data
+        self.validation_labels = validation_labels
 
     def __len__(self):
         assert self.eeg_data.shape[0] == self.label_data.shape[0]

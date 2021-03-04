@@ -1,6 +1,6 @@
-import torch
 from torch.utils.data import Dataset
 import numpy as np
+import torch
 
 def moving_average(x, w):
     """
@@ -20,11 +20,12 @@ class eegData(Dataset):
     provides simple functionality
 
     """
-    def __init__(self, data_file_name, label_file_name, preprocessing_params={}):
+    def __init__(self, data_file_name, label_file_name, device=torch.device('cpu'), preprocessing_params={}):
         """
         :input data_file_name: file path of the data
         :input label_file_name: file path of the labels
         :input validation_size: size of validation (percentage given to validation)
+        :input device: specify if CUDA or GPU
         :input preprocessing_params:
             'subsample': int on the size of step of the subsampling
             'mov_avg': int on the size of the moving average window
@@ -35,6 +36,7 @@ class eegData(Dataset):
         trimming = preprocessing_params.get('trim', 0) # how much you want to trim
         eeg_data = np.load(data_file_name)
         label_data = np.load(label_file_name) - 769
+        self.device = device
         
 
         # remove the last x amount of time steps
@@ -52,13 +54,12 @@ class eegData(Dataset):
         eeg_data = np.vstack(stack_eeg_data)
         label_data = np.concatenate(stack_label_data)
 
-
         # begin applying moving_average
         eeg_data = np.apply_along_axis(func1d=moving_average, axis=2, arr=eeg_data, w=mov_avg_window)
 
 
-        self.eeg_data = eeg_data 
-        self.label_data = label_data
+        self.eeg_data = torch.from_numpy(eeg_data).float().to(self.device)
+        self.label_data = torch.from_numpy(eeg_data).float().long().to(self.device)
         self.mov_avg_window = mov_avg_window 
         self.trim = trimming 
         self.sampling = subsample

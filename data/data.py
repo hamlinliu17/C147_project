@@ -59,7 +59,7 @@ class eegData(Dataset):
 
 
         self.eeg_data = torch.from_numpy(eeg_data).float().to(self.device)
-        self.label_data = torch.from_numpy(eeg_data).float().long().to(self.device)
+        self.label_data = torch.from_numpy(label_data).float().long().to(self.device)
         self.mov_avg_window = mov_avg_window 
         self.trim = trimming 
         self.sampling = subsample
